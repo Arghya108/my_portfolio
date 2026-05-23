@@ -1857,7 +1857,11 @@
     body.admin-mode [data-editable] { cursor:text; position:relative; }
     body.admin-mode [data-editable]:hover { background:rgba(240,165,0,0.07); box-shadow:0 0 0 2px rgba(240,165,0,0.22); }
     body.admin-mode [data-editable]:focus { background:rgba(240,165,0,0.1); box-shadow:0 0 0 2px var(--accent); }
+    /* Only block pointer-events on editable TEXT nodes, never on carousel tracks or cards */
     body:not(.admin-mode) [data-editable] { pointer-events:none; }
+    /* Always allow interaction on carousels regardless of admin state */
+    .carousel-track, #certs-track, #skills-track,
+    .carousel-track *, #certs-track *, #skills-track * { pointer-events:auto; }
     body.admin-mode [data-editable]:hover::after {
       content:'✏️ edit'; position:absolute; top:-24px; left:0;
       font-size:0.6rem; font-family:'Syne',sans-serif; font-weight:700;
@@ -1980,35 +1984,6 @@
 </head>
 
 <body>
-
-  <!-- ════════════════════════════════════════════════════
-       FIREBASE SETUP NOTICE — visible only when API key
-       has not been replaced yet. Remove once configured.
-  ════════════════════════════════════════════════════ -->
-  <div id="firebase-setup-notice" style="
-    position:fixed;top:0;left:0;right:0;z-index:99999;
-    background:linear-gradient(90deg,#f0a500,#ff6b35);
-    color:#000;padding:10px 20px;text-align:center;
-    font-family:Syne,sans-serif;font-size:0.78rem;font-weight:700;
-    letter-spacing:0.06em;text-transform:uppercase;
-    display:flex;align-items:center;justify-content:center;gap:12px;
-  ">
-    ⚠ Firebase not configured — replace YOUR_API_KEY values in the FIREBASE_CONFIG block
-    <button onclick="document.getElementById('firebase-setup-notice').remove()" style="
-      background:#000;color:#f0a500;border:none;border-radius:6px;
-      padding:4px 10px;cursor:pointer;font-size:0.7rem;font-weight:700;
-    ">Dismiss</button>
-  </div>
-  <script>
-    /* Auto-hide the setup notice once Firebase looks configured */
-    (function() {
-      if (typeof FIREBASE_CONFIG !== 'undefined' &&
-          FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey !== 'YOUR_API_KEY') {
-        var n = document.getElementById('firebase-setup-notice');
-        if (n) n.remove();
-      }
-    })();
-  </script>
 
   <!-- ══ ADMIN UI ELEMENTS ══ -->
   <button id="admin-toggle-btn" title="Admin Mode" onclick="adminToggle()">🔑</button>
@@ -2161,7 +2136,8 @@
         <div class="hero-img-wrap" style="position:relative">
           <div class="hero-img-dots tl"></div>
           <div class="hero-img-dots br"></div>
-          <img class="hero-img" id="hero-photo" src="Arghya (1).jpeg" alt="Arghya Das" />
+          <img class="hero-img" id="hero-photo" src="Arghya.jpeg" alt="Arghya Das"
+            onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22340%22 height=%22450%22%3E%3Crect width=%22340%22 height=%22450%22 fill=%22%23141c25%22/%3E%3Ccircle cx=%22170%22 cy=%22160%22 r=%2280%22 fill=%22%231a2434%22/%3E%3Cellipse cx=%22170%22 cy=%22370%22 rx=%22130%22 ry=%22100%22 fill=%22%231a2434%22/%3E%3Ctext x=%22170%22 y=%22165%22 text-anchor=%22middle%22 font-size=%2270%22%3E%F0%9F%91%A4%3C/text%3E%3Ctext x=%22170%22 y=%22290%22 text-anchor=%22middle%22 font-family=%22Syne,sans-serif%22 font-size=%2213%22 fill=%22%238896a8%22%3EClick Change Photo%3C/text%3E%3C/svg%3E'" />
           <div class="hero-img-badge">
             <div class="avail-ring" style="width:8px;height:8px;"><div class="dot-inner" style="width:8px;height:8px;"></div></div>
             Open to work
@@ -2978,6 +2954,8 @@
       var cards = Array.from(track.querySelectorAll(cardSel));
       if (cards.length === 0) return;
 
+      /* Clear old dots before adding new ones */
+      dotsWrap.innerHTML = '';
       cards.forEach(function(_, i) {
         var dot = document.createElement('button');
         dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
@@ -3021,8 +2999,13 @@
         scrollTimer = setTimeout(updateUI, 60);
       }, { passive: true });
 
-      prevBtn.addEventListener('click', function() { var idx = getActiveIndex(); if (idx > 0) scrollToCard(idx-1); });
-      nextBtn.addEventListener('click', function() { var idx = getActiveIndex(); if (idx < cards.length-1) scrollToCard(idx+1); });
+      /* Remove old listeners by cloning buttons */
+      var newPrev = prevBtn.cloneNode(true);
+      var newNext = nextBtn.cloneNode(true);
+      prevBtn.parentNode.replaceChild(newPrev, prevBtn);
+      nextBtn.parentNode.replaceChild(newNext, nextBtn);
+      newPrev.addEventListener('click', function() { var idx = getActiveIndex(); if (idx > 0) scrollToCard(idx-1); });
+      newNext.addEventListener('click', function() { var idx = getActiveIndex(); if (idx < cards.length-1) scrollToCard(idx+1); });
 
       /* Mouse drag */
       var isDragging = false, dragStartX = 0, scrollStart = 0, dragCommitted = false;
@@ -3060,10 +3043,18 @@
       }
     }
 
+    /* Expose globally so Firebase load can re-init after rebuilding cards */
+    window._initCarousel = initCarousel;
+
+    var _carouselCfgs = [
+      { trackId:'carousel-track', prevId:'carousel-prev', nextId:'carousel-next', dotsId:'carousel-dots', fadeLId:'fade-left', fadeRId:'fade-right', cardSelector:'.project-card' },
+      { trackId:'skills-track',   prevId:'skills-prev',   nextId:'skills-next',   dotsId:'skills-dots',   fadeLId:'skills-fade-left', fadeRId:'skills-fade-right', cardSelector:'.toolkit-card' },
+      { trackId:'certs-track',    prevId:'certs-prev',    nextId:'certs-next',    dotsId:'certs-dots',    fadeLId:'certs-fade-left',  fadeRId:'certs-fade-right',  cardSelector:'.cert-card' }
+    ];
+    window._carouselCfgs = _carouselCfgs;
+
     /* Init all three carousels */
-    initCarousel({ trackId:'carousel-track', prevId:'carousel-prev', nextId:'carousel-next', dotsId:'carousel-dots', fadeLId:'fade-left', fadeRId:'fade-right', cardSelector:'.project-card' });
-    initCarousel({ trackId:'skills-track',   prevId:'skills-prev',   nextId:'skills-next',   dotsId:'skills-dots',   fadeLId:'skills-fade-left', fadeRId:'skills-fade-right', cardSelector:'.toolkit-card' });
-    initCarousel({ trackId:'certs-track',    prevId:'certs-prev',    nextId:'certs-next',    dotsId:'certs-dots',    fadeLId:'certs-fade-left',  fadeRId:'certs-fade-right',  cardSelector:'.cert-card' });
+    _carouselCfgs.forEach(function(cfg) { initCarousel(cfg); });
 
   </script>
   <!-- ══════════════════════════════════════════════════════
@@ -3086,7 +3077,6 @@
       messagingSenderId: "236439277339",
       appId:             "1:236439277339:web:8446e00ac13baa8f6e8dbe"
     };
-    
 
     /* Initialise Firebase once */
     if (!firebase.apps.length) {
@@ -3199,29 +3189,23 @@
       if (!adminMode) return;
       var file = input.files[0]; if (!file) return;
 
-      /* Show preview immediately */
+      /* Read as base64 and show preview immediately */
       var reader = new FileReader();
       reader.onload = function(ev) {
+        var base64 = ev.target.result;
         var img = document.getElementById('hero-photo');
-        img.src = ev.target.result;
+        img.src = base64;
+        /* Save base64 directly to Firestore (no Storage needed — Spark plan compatible) */
+        adminToast('💾 Saving photo…');
+        window._DOC_META().set({ heroPhotoUrl: base64 }, { merge: true })
+          .then(function() { adminToast('Photo saved ✓'); })
+          .catch(function(err) {
+            console.error('Avatar save error:', err);
+            adminToast('⚠ Photo preview set but not saved — check Firestore rules');
+          });
       };
+      reader.onerror = function() { adminToast('⚠ Could not read image file'); };
       reader.readAsDataURL(file);
-
-      /* Upload to Firebase Storage */
-      adminToast('⏫ Uploading photo…');
-      var ref = window._storage.ref('portfolio/hero-photo');
-      ref.put(file).then(function() {
-        return ref.getDownloadURL();
-      }).then(function(url) {
-        document.getElementById('hero-photo').src = url;
-        /* Persist the URL in Firestore so it loads on next visit */
-        return window._DOC_META().set({ heroPhotoUrl: url }, { merge: true });
-      }).then(function() {
-        adminToast('Photo saved to Firebase ✓');
-      }).catch(function(err) {
-        console.error('Avatar upload error:', err);
-        adminToast('⚠ Photo upload failed — check Storage rules');
-      });
     };
 
     /* ════════════════════════════════════════════════════
@@ -3446,6 +3430,12 @@
         }
 
         hideBanner();
+        /* Re-init all carousels so dots & arrows reflect the newly-built cards */
+        setTimeout(function() {
+          if (window._initCarousel && window._carouselCfgs) {
+            window._carouselCfgs.forEach(function(cfg) { window._initCarousel(cfg); });
+          }
+        }, 100);
       }).catch(function(err) {
         console.warn('Firestore meta load error:', err);
         hideBanner();
@@ -3624,28 +3614,8 @@
       adminToast('Certificate added ✓');
       savePortfolioState();
 
-      /* If an image file was picked, upload to Firebase Storage in the background */
-      if (cfImageFile && window._storage) {
-        var localFile = cfImageFile;
-        cfImageFile = null; cfImageData = null;
-        var fileName = 'portfolio/certs/' + Date.now() + '_' + localFile.name.replace(/\s+/g, '_');
-        var ref = window._storage.ref(fileName);
-        adminToast('⏫ Uploading certificate image…');
-        ref.put(localFile).then(function() {
-          return ref.getDownloadURL();
-        }).then(function(url) {
-          /* Update the img we just inserted with the real Firebase URL */
-          var imgEl = card.querySelector('img');
-          if (imgEl) { imgEl.src = url; imgEl.dataset.fbUrl = url; }
-          adminToast('Image saved to Firebase ✓');
-          savePortfolioState();
-        }).catch(function(err) {
-          console.error('Cert image upload error:', err);
-          adminToast('⚠ Image upload failed — kept local preview');
-        });
-      } else {
-        cfImageFile = null; cfImageData = null;
-      }
+      /* Base64 only — no Firebase Storage needed (Spark free plan) */
+      cfImageFile = null; cfImageData = null;
     }
 
     function saveSkill() {
