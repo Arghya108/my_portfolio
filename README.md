@@ -1,1 +1,3 @@
 # my_portfolio
+
+Personal Portfolio Website — Arghya Das A modern single-file portfolio website built with pure HTML, CSS, and JavaScript — no frameworks, no dependencies. Features a dark editorial design with smooth scroll animations, a typing effect hero section, animated skill bars, dark/light mode toggle with localStorage persistence, real-time form validation, and a custom cursor. Fully responsive across mobile and desktop. All sections — Hero, About, Projects, Skills, and Contact — are packed into one .html file that runs by simply opening it in a browser. Built with: HTML5 · CSS3 · Vanilla JavaScript
