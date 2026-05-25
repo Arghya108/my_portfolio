@@ -46,4 +46,6 @@ I’m a Computer Science student passionate about software engineering, modern w
 
 
 ⭐ If you like this project, feel free to star the repository.
-<img width="1897" height="881" alt="image" src="https://github.com/user-attachments/assets/3e422e4a-f15d-4c0e-bb1b-e0003ce582af" />
+<img width="1900" height="880" alt="image" src="https://github.com/user-attachments/assets/7b75c1f4-335b-4c39-be37-35c1a804caec" />
+
+
