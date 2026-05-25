@@ -1999,6 +1999,97 @@
       font-weight: 500;
     }
     .cert-date-row svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+    /* ══════════════════════════════════════
+   CERTIFICATE LIGHTBOX
+══════════════════════════════════════ */
+#cert-lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(12px);
+  padding: 20px;
+}
+#cert-lightbox.open { display: flex; }
+
+#cert-lightbox-img {
+  max-width: 90vw;
+  max-height: 85vh;
+  border-radius: 16px;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.8);
+  cursor: zoom-in;
+  transition: transform 0.3s ease;
+  transform-origin: center center;
+  user-select: none;
+}
+
+#cert-lightbox-close {
+  position: fixed;
+  top: 20px; right: 20px;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  z-index: 10000;
+}
+#cert-lightbox-close:hover {
+  background: rgba(255,255,255,0.25);
+  transform: scale(1.1);
+}
+
+.cert-lightbox-controls {
+  position: fixed;
+  bottom: 28px; left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(20,28,37,0.9);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px;
+  padding: 8px 20px;
+  z-index: 10000;
+}
+.cert-lightbox-controls button {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.cert-lightbox-controls button:hover {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+}
+#cert-zoom-level {
+  font-size: 0.78rem;
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  color: var(--text-2);
+  min-width: 44px;
+  text-align: center;
+}
+
+/* Make cert image clickable */
+.cert-img-wrap img,
+.cert-img-wrap .cert-img-placeholder {
+  cursor: zoom-in;
+}
+    
   </style>
 </head>
 
@@ -3691,6 +3782,93 @@
 
   })();
   </script>
+<!-- CERTIFICATE LIGHTBOX -->
+<div id="cert-lightbox">
+  <button id="cert-lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="cert-lightbox-img" src="" alt="Certificate" draggable="false"/>
+  <div class="cert-lightbox-controls">
+    <button onclick="zoomOut()" title="Zoom out">−</button>
+    <span id="cert-zoom-level">100%</span>
+    <button onclick="zoomIn()" title="Zoom in">+</button>
+    <button onclick="resetZoom()" title="Reset">↺</button>
+  </div>
+</div>
 
+  <script>
+/* ══════════════════════════════════════
+   CERTIFICATE LIGHTBOX
+══════════════════════════════════════ */
+var lbScale = 1;
+var lbImg   = document.getElementById('cert-lightbox-img');
+
+function openLightbox(src) {
+  if (!src || src === '#' || src.includes('svg+xml')) return;
+  lbScale = 1;
+  lbImg.src = src;
+  lbImg.style.transform = 'scale(1)';
+  lbImg.style.cursor = 'zoom-in';
+  document.getElementById('cert-zoom-level').textContent = '100%';
+  document.getElementById('cert-lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  document.getElementById('cert-lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+  lbScale = 1;
+}
+
+function zoomIn() {
+  lbScale = Math.min(lbScale + 0.25, 3);
+  applyZoom();
+}
+function zoomOut() {
+  lbScale = Math.max(lbScale - 0.25, 0.5);
+  applyZoom();
+}
+function resetZoom() {
+  lbScale = 1;
+  applyZoom();
+}
+function applyZoom() {
+  lbImg.style.transform = 'scale(' + lbScale + ')';
+  lbImg.style.cursor = lbScale >= 3 ? 'zoom-out' : 'zoom-in';
+  document.getElementById('cert-zoom-level').textContent = Math.round(lbScale * 100) + '%';
+}
+
+/* Click image to zoom in/out */
+lbImg.addEventListener('click', function() {
+  if (lbScale < 2) zoomIn(); else resetZoom();
+});
+
+/* Mouse wheel zoom */
+document.getElementById('cert-lightbox').addEventListener('wheel', function(e) {
+  e.preventDefault();
+  if (e.deltaY < 0) zoomIn(); else zoomOut();
+}, { passive: false });
+
+/* Click backdrop to close */
+document.getElementById('cert-lightbox').addEventListener('click', function(e) {
+  if (e.target === this) closeLightbox();
+});
+
+/* ESC key to close */
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeLightbox();
+});
+
+/* Attach click to existing cert cards */
+document.querySelectorAll('.cert-img-wrap').forEach(function(wrap) {
+  wrap.addEventListener('click', function() {
+    var img = wrap.querySelector('img');
+    if (img) openLightbox(img.src);
+  });
+});
+
+/* Expose globally for dynamically added cards */
+window.openLightbox = openLightbox;
+</script>
+
+  
 </body>
 </html>
