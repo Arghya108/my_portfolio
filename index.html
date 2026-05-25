@@ -529,9 +529,12 @@
       background-clip: text;
     }
     .hero-name .line-2 {
-      color: transparent;
-      -webkit-text-stroke: 1.5px var(--text-3);
-    }
+  background: linear-gradient(135deg, #fff 0%, var(--text-2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  -webkit-text-stroke: 0;
+}
 
     .hero-tagline {
       font-size: clamp(1rem, 2.2vw, 1.3rem);
