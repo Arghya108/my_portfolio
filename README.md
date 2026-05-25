@@ -1,4 +1,4 @@
-# My_Portfolio
+<img width="1901" height="872" alt="image" src="https://github.com/user-attachments/assets/4c222dfc-5f41-4e5d-a9a1-c3ab35d8af5e" /># My_Portfolio
 
 # Arghya Das — Developer Portfolio
 
@@ -44,8 +44,15 @@ This portfolio focuses on clean UI/UX, smooth interactions, performance, and a p
 
 I’m a Computer Science student passionate about software engineering, modern web development, and building impactful digital experiences. I enjoy learning new technologies, solving problems, and creating projects that combine both functionality and design.
 
-
 ⭐ If you like this project, feel free to star the repository.
-<img width="1900" height="880" alt="image" src="https://github.com/user-attachments/assets/7b75c1f4-335b-4c39-be37-35c1a804caec" />
 
+HOME PAGE: 🦉 DARK MODE
+
+<img width="1901" height="872" alt="image" src="https://github.com/user-attachments/assets/b869dff4-6f85-4e22-bdff-ee0398330ca6" />
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+HOME PAGE: 🌞 LIGHT MODE
+
+<img width="1898" height="877" alt="image" src="https://github.com/user-attachments/assets/59905f2f-c3cf-4c4c-88e0-3ed2d26b188b" />
 
