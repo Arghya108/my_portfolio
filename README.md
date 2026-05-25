@@ -56,5 +56,6 @@ HOME PAGE: 🦉 DARK MODE
 
 HOME PAGE: 🌞 LIGHT MODE
 
-<img width="1898" height="877" alt="image" src="https://github.com/user-attachments/assets/59905f2f-c3cf-4c4c-88e0-3ed2d26b188b" />
+<img width="1898" height="875" alt="image" src="https://github.com/user-attachments/assets/3ea3e684-3b1e-4dd2-b356-fea0680567ac" />
+
 
