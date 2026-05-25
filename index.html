@@ -1980,6 +1980,344 @@
       font-weight: 500;
     }
     .cert-date-row svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+    /* ══════════════════════════════════════
+       CERTIFICATE LIGHTBOX
+    ══════════════════════════════════════ */
+    #cert-lightbox {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.94);
+      z-index: 9500; display: none;
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      padding: 60px 20px 20px;
+      animation: lbFadeIn 0.25s ease;
+    }
+    #cert-lightbox.open { display: flex; }
+    @keyframes lbFadeIn { from { opacity:0; } to { opacity:1; } }
+
+    .cert-lb-header {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 24px;
+      background: rgba(6,10,14,0.85);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      z-index: 9502;
+      backdrop-filter: blur(10px);
+    }
+    .cert-lb-header-title {
+      font-family: 'Syne', sans-serif; font-weight: 700;
+      font-size: 0.85rem; letter-spacing: 0.05em;
+      color: var(--text-2); max-width: 60vw;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .cert-lb-close {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18);
+      color: #fff; font-size: 1.1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; flex-shrink: 0;
+    }
+    .cert-lb-close:hover { background: #e53e3e; border-color: #e53e3e; transform: scale(1.08); }
+
+    .cert-lb-img-outer {
+      position: relative; width: 100%;
+      display: flex; align-items: center; justify-content: center;
+      flex: 1; overflow: hidden;
+      cursor: zoom-in;
+    }
+    .cert-lb-img-outer.zoomed { cursor: zoom-out; }
+    #cert-lb-img {
+      max-width: min(860px, 90vw);
+      max-height: 72vh;
+      object-fit: contain;
+      border-radius: 10px;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.85);
+      transform-origin: center center;
+      transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+      user-select: none; pointer-events: none;
+    }
+    .cert-lb-placeholder-view {
+      width: min(600px, 88vw); height: 380px;
+      background: linear-gradient(135deg, #151e2d 0%, #0a0f17 100%);
+      border-radius: 12px; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 16px;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.85);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .cert-lb-placeholder-view .lb-big-emoji { font-size: 5rem; }
+    .cert-lb-placeholder-view .lb-big-title {
+      font-family: 'Syne', sans-serif; font-weight: 700;
+      font-size: 1.2rem; color: var(--text); text-align: center; padding: 0 24px;
+    }
+    .cert-lb-placeholder-view .lb-big-issuer {
+      font-size: 0.82rem; color: var(--text-3);
+    }
+
+    .cert-lb-controls {
+      display: flex; gap: 10px; align-items: center;
+      justify-content: center; padding: 16px 0 8px;
+      flex-shrink: 0;
+    }
+    .cert-lb-btn {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: rgba(255,255,255,0.09);
+      border: 1px solid rgba(255,255,255,0.16);
+      color: #fff; font-size: 1.1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; font-weight: 700; line-height: 1;
+    }
+    .cert-lb-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); transform: scale(1.1); }
+    .cert-lb-zoom-label {
+      color: rgba(255,255,255,0.55); font-size: 0.78rem;
+      font-family: 'Syne', sans-serif; font-weight: 600;
+      min-width: 48px; text-align: center; letter-spacing: 0.03em;
+    }
+    .cert-lb-divider { width: 1px; height: 24px; background: rgba(255,255,255,0.12); }
+
+    /* Make cert cards clickable for lightbox */
+    .cert-img-wrap { cursor: pointer; }
+    .cert-img-wrap:hover::before {
+      content: '🔍 View';
+      position: absolute; inset: 0; z-index: 3;
+      background: rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif; font-weight: 700;
+      font-size: 0.9rem; letter-spacing: 0.1em; color: #fff;
+      text-transform: uppercase;
+      transition: opacity 0.25s;
+    }
+
+    /* ══════════════════════════════════════
+       CERT BADGE TYPE SELECTOR (admin)
+    ══════════════════════════════════════ */
+    .cert-badge-pill { cursor: default; }
+    body.admin-mode .cert-badge-pill {
+      cursor: pointer; position: relative;
+    }
+    body.admin-mode .cert-badge-pill::after {
+      content: ' ▾'; opacity: 0.7; font-size: 0.65rem;
+    }
+    body.admin-mode .cert-badge-pill:hover { opacity: 0.85; }
+
+    /* Badge type dropdown */
+    .cert-badge-dropdown {
+      display: none;
+      position: absolute; top: calc(100% + 6px); left: 0;
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: 10px; padding: 6px 4px; z-index: 100;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.5);
+      min-width: 140px;
+    }
+    .cert-badge-dropdown.open { display: block; }
+    .cert-badge-opt {
+      display: block; width: 100%;
+      padding: 8px 14px; font-size: 0.78rem; font-family: 'Syne', sans-serif;
+      font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+      border: none; background: none; cursor: pointer;
+      border-radius: 7px; text-align: left;
+      color: var(--text-2); transition: all 0.15s;
+    }
+    .cert-badge-opt:hover { background: var(--accent-glow); color: var(--accent); }
+
+    /* ══════════════════════════════════════
+       SKILL BAR LEVEL EDITOR (admin)
+    ══════════════════════════════════════ */
+    .skill-pill-bar { position: relative; }
+    body.admin-mode .skill-pill-bar { cursor: pointer; }
+    body.admin-mode .skill-pill-bar:hover .skill-pill-bar-track {
+      outline: 2px solid var(--accent);
+      border-radius: 3px;
+    }
+    .skill-bar-edit-tip {
+      display: none;
+      position: absolute; top: -28px; right: 0;
+      background: var(--accent); color: #000;
+      border-radius: 6px; padding: 3px 9px;
+      font-size: 0.6rem; font-family: 'Syne', sans-serif; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      white-space: nowrap; pointer-events: none; z-index: 10;
+    }
+    body.admin-mode .skill-pill-bar:hover .skill-bar-edit-tip { display: block; }
+
+    /* ══════════════════════════════════════
+       ADD CATEGORY CARD (admin)
+    ══════════════════════════════════════ */
+    .admin-add-category-card {
+      display: none !important;
+      background: var(--surface);
+      border: 2px dashed rgba(79,195,247,0.35);
+      border-radius: var(--radius-lg);
+      padding: 28px 22px;
+      min-width: 300px; max-width: 300px;
+      min-height: 370px; flex-shrink: 0;
+      scroll-snap-align: start;
+      flex-direction: column; align-items: center;
+      justify-content: center; gap: 14px;
+      cursor: pointer; transition: all 0.25s;
+      text-align: center;
+    }
+    .admin-add-category-card:hover {
+      border-color: var(--accent-3);
+      background: rgba(79,195,247,0.04);
+    }
+    .admin-add-category-card .icon { font-size: 2.4rem; opacity: 0.35; }
+    .admin-add-category-card p { font-size: 0.82rem; color: var(--text-2); }
+    .admin-add-category-card span {
+      background: var(--accent-3); color: #000;
+      padding: 8px 20px; border-radius: 999px;
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.78rem;
+    }
+    body.admin-mode .admin-add-category-card { display: flex !important; }
+
+    /* Category Edit Modal */
+    #cat-modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.88);
+      z-index: 8500; display: none; align-items: center; justify-content: center;
+      backdrop-filter: blur(12px); padding: 20px;
+    }
+    #cat-modal.open { display: flex; }
+    .cat-modal-box {
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: 24px; padding: 36px; width: 100%; max-width: 480px;
+      animation: fadeUp 0.25s ease; box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+      position: relative;
+    }
+    .cat-modal-box h3 { font-family:'Syne',sans-serif; font-size:1.2rem; font-weight:800; margin-bottom:22px; }
+    .cat-skill-list { display: flex; flex-direction: column; gap: 8px; margin: 14px 0; max-height: 220px; overflow-y: auto; }
+    .cat-skill-item { display: flex; gap: 8px; align-items: center; }
+    .cat-skill-item input { flex: 1; }
+    .cat-skill-item input:last-child { width: 50px; flex: 0 0 50px; }
+    .cat-skill-rm { width: 28px; height: 28px; border-radius: 6px; background: #e53e3e; color: #fff; border: none; cursor: pointer; font-size: 0.75rem; flex-shrink: 0; }
+
+    /* ══════════════════════════════════════
+       HERO EDITABLE FIELDS
+    ══════════════════════════════════════ */
+    body.admin-mode .hero-name .line-1[data-editable]:hover,
+    body.admin-mode .hero-name .line-2[data-editable]:hover {
+      background: rgba(240,165,0,0.07);
+      box-shadow: 0 0 0 2px rgba(240,165,0,0.22);
+      border-radius: 4px;
+    }
+    body.admin-mode .hero-name .line-1[data-editable],
+    body.admin-mode .hero-name .line-2[data-editable] {
+      -webkit-text-fill-color: unset;
+      background-clip: unset;
+    }
+    body.admin-mode .hero-name .line-1[data-editable] { color: #fff; }
+    body.admin-mode .hero-name .line-2[data-editable] { color: var(--text-3); }
+
+    /* Hero badge editable span */
+    body.admin-mode .hero-badge-text[data-editable]:hover {
+      background: rgba(240,165,0,0.09);
+      box-shadow: 0 0 0 2px rgba(240,165,0,0.22);
+      border-radius: 4px;
+    }
+
+    /* ══════════════════════════════════════
+       TYPING PHRASES EDITOR (admin toolbar)
+    ══════════════════════════════════════ */
+    #typing-edit-btn {
+      display: none !important;
+      position: fixed; bottom: 138px; right: 30px;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--surface-2); border: 1px solid var(--border-2);
+      color: var(--text-2); font-size: 1rem; cursor: pointer;
+      align-items: center; justify-content: center;
+      z-index: 2000; opacity: 0.7; transition: all 0.3s ease;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+    body.admin-mode #typing-edit-btn { display: flex !important; }
+    #typing-edit-btn:hover { opacity: 1; background: var(--accent); color: #000; }
+
+    #phrases-modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.88);
+      z-index: 8600; display: none; align-items: center; justify-content: center;
+      backdrop-filter: blur(12px); padding: 20px;
+    }
+    #phrases-modal.open { display: flex; }
+    .phrases-modal-box {
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: 24px; padding: 36px; width: 100%; max-width: 440px;
+      animation: fadeUp 0.25s ease; box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+    }
+    .phrases-modal-box h3 { font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:800; margin-bottom:16px; }
+    .phrases-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .phrase-item { display: flex; gap: 8px; align-items: center; }
+    .phrase-item input { flex: 1; background:var(--bg); border:1px solid var(--border-2); border-radius:8px; padding:9px 12px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.88rem; outline:none; }
+    .phrase-item input:focus { border-color:var(--accent); }
+    .phrase-rm { width: 28px; height: 28px; border-radius: 6px; background: #e53e3e; color: #fff; border: none; cursor: pointer; font-size: 0.75rem; flex-shrink: 0; transition: background 0.15s; }
+    .phrase-rm:hover { background: #c53030; }
+    .phrases-add-btn { background: none; border: 1.5px dashed var(--accent); color: var(--accent); border-radius: 8px; padding: 9px; font-family:'Syne',sans-serif; font-weight:700; font-size:0.78rem; cursor: pointer; width: 100%; transition: all 0.2s; }
+    .phrases-add-btn:hover { background: var(--accent-glow); }
+
+    /* ══════════════════════════════════════
+       CONTACT INFO EDITABLE
+    ══════════════════════════════════════ */
+    body.admin-mode .contact-item-value[data-editable]:hover {
+      background: rgba(240,165,0,0.07);
+      box-shadow: 0 0 0 2px rgba(240,165,0,0.22);
+      border-radius: 4px;
+    }
+
+    /* ══════════════════════════════════════
+       MARQUEE EDITABLE
+    ══════════════════════════════════════ */
+    #marquee-edit-btn {
+      display: none !important;
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.2);
+      color: #fff; border-radius: 6px; padding: 4px 10px;
+      font-size: 0.72rem; font-family:'Syne',sans-serif; font-weight:700;
+      cursor: pointer; z-index: 10; letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+    body.admin-mode .marquee-strip { position: relative; }
+    body.admin-mode #marquee-edit-btn { display: block !important; }
+    #marquee-edit-btn:hover { background: rgba(0,0,0,0.9); }
+
+    #marquee-modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.88);
+      z-index: 8700; display: none; align-items: center; justify-content: center;
+      backdrop-filter: blur(12px); padding: 20px;
+    }
+    #marquee-modal.open { display: flex; }
+    .marquee-modal-box {
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: 24px; padding: 36px; width: 100%; max-width: 460px;
+      animation: fadeUp 0.25s ease; box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+      max-height: 85vh; overflow-y: auto;
+    }
+    .marquee-modal-box h3 { font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:800; margin-bottom:16px; }
+    .marquee-items-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .marquee-item-row { display: flex; gap: 8px; align-items: center; }
+    .marquee-item-row input { flex:1; background:var(--bg); border:1px solid var(--border-2); border-radius:8px; padding:9px 12px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.85rem; outline:none; }
+    .marquee-item-row input:focus { border-color:var(--accent); }
+    .mitem-rm { width:28px; height:28px; border-radius:6px; background:#e53e3e; color:#fff; border:none; cursor:pointer; font-size:0.75rem; flex-shrink:0; }
+    .marquee-add-btn { background:none; border:1.5px dashed var(--accent); color:var(--accent); border-radius:8px; padding:9px; font-family:'Syne',sans-serif; font-weight:700; font-size:0.78rem; cursor:pointer; width:100%; transition:all 0.2s; margin-bottom:16px; }
+    .marquee-add-btn:hover { background:var(--accent-glow); }
+
+    /* ══════════════════════════════════════
+       NAV LOGO EDITABLE
+    ══════════════════════════════════════ */
+    body.admin-mode .nav-logo[data-editable]:hover {
+      background: rgba(240,165,0,0.09);
+      box-shadow: 0 0 0 2px rgba(240,165,0,0.22);
+      border-radius: 4px;
+    }
+
+    /* ══════════════════════════════════════
+       FOOTER EDITABLE
+    ══════════════════════════════════════ */
+    body.admin-mode .footer-logo[data-editable]:hover,
+    body.admin-mode .footer-tagline[data-editable]:hover,
+    body.admin-mode .footer-copy[data-editable]:hover {
+      background: rgba(240,165,0,0.09);
+      box-shadow: 0 0 0 2px rgba(240,165,0,0.22);
+      border-radius: 4px;
+    }
   </style>
 </head>
 
@@ -1989,6 +2327,82 @@
   <button id="admin-toggle-btn" title="Admin Mode" onclick="adminToggle()">🔑</button>
   <div id="admin-banner">🔑 Edit Mode Active — click text to edit · use + buttons to add · use 🗑 to delete</div>
   <div id="admin-toast"></div>
+
+  <!-- ══ CERTIFICATE LIGHTBOX ══ -->
+  <div id="cert-lightbox">
+    <div class="cert-lb-header">
+      <span class="cert-lb-header-title" id="cert-lb-title">Certificate</span>
+      <button class="cert-lb-close" onclick="closeCertLightbox()" title="Close">✕</button>
+    </div>
+    <div class="cert-lb-img-outer" id="cert-lb-outer" onclick="certLightboxToggleZoom()">
+      <img id="cert-lb-img" src="" alt="Certificate"/>
+      <div class="cert-lb-placeholder-view" id="cert-lb-placeholder" style="display:none">
+        <div class="lb-big-emoji" id="cert-lb-emoji">🏅</div>
+        <div class="lb-big-title" id="cert-lb-big-title"></div>
+        <div class="lb-big-issuer" id="cert-lb-big-issuer"></div>
+      </div>
+    </div>
+    <div class="cert-lb-controls">
+      <button class="cert-lb-btn" onclick="certZoom(-25)" title="Zoom Out">−</button>
+      <span class="cert-lb-zoom-label" id="cert-lb-zoom-label">100%</span>
+      <button class="cert-lb-btn" onclick="certZoom(25)" title="Zoom In">+</button>
+      <div class="cert-lb-divider"></div>
+      <button class="cert-lb-btn" onclick="certZoomReset()" title="Reset Zoom" style="font-size:0.85rem">↺</button>
+    </div>
+  </div>
+
+  <!-- ══ TYPING PHRASES EDIT BUTTON ══ -->
+  <button id="typing-edit-btn" title="Edit typing phrases" onclick="openPhrasesModal()">⌨</button>
+
+  <!-- ══ PHRASES MODAL ══ -->
+  <div id="phrases-modal">
+    <div class="phrases-modal-box">
+      <h3>✏️ Edit Typing Phrases</h3>
+      <div class="phrases-list" id="phrases-list"></div>
+      <button class="phrases-add-btn" onclick="addPhraseRow()">+ Add Phrase</button>
+      <div class="edit-modal-actions">
+        <button class="btn btn-ghost" style="padding:9px 20px;font-size:0.82rem" onclick="document.getElementById('phrases-modal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-primary" style="padding:9px 22px;font-size:0.82rem" onclick="savePhrasesModal()">Save ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MARQUEE EDIT MODAL ══ -->
+  <div id="marquee-modal">
+    <div class="marquee-modal-box">
+      <h3>✏️ Edit Marquee Strip</h3>
+      <div class="marquee-items-list" id="marquee-items-list"></div>
+      <button class="marquee-add-btn" onclick="addMarqueeRow()">+ Add Item</button>
+      <div class="edit-modal-actions">
+        <button class="btn btn-ghost" style="padding:9px 20px;font-size:0.82rem" onclick="document.getElementById('marquee-modal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-primary" style="padding:9px 22px;font-size:0.82rem" onclick="saveMarqueeModal()">Save ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ADD CATEGORY MODAL ══ -->
+  <div id="cat-modal">
+    <div class="cat-modal-box">
+      <h3>⚡ Add Skill Category</h3>
+      <div class="admin-form-group">
+        <label>Icon (emoji)</label>
+        <input id="cat-icon" class="admin-form-group input" placeholder="e.g. 🛡️" maxlength="4"
+               style="background:var(--bg);border:1px solid var(--border-2);border-radius:10px;padding:11px 15px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.88rem;outline:none;width:100%"/>
+      </div>
+      <div class="admin-form-group">
+        <label>Category Name</label>
+        <input id="cat-name" placeholder="e.g. Cloud &amp; DevOps"
+               style="background:var(--bg);border:1px solid var(--border-2);border-radius:10px;padding:11px 15px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.88rem;outline:none;width:100%"/>
+      </div>
+      <label style="font-size:0.75rem;color:var(--text-2);font-weight:500;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:8px;display:block">Skills (name, icon per row)</label>
+      <div class="cat-skill-list" id="cat-skill-list"></div>
+      <button onclick="addCatSkillRow()" style="background:none;border:1.5px dashed var(--accent);color:var(--accent);border-radius:8px;padding:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:0.78rem;cursor:pointer;width:100%;margin:10px 0 20px;transition:all 0.2s">+ Add Skill</button>
+      <div class="edit-modal-actions">
+        <button class="btn btn-ghost" style="padding:9px 20px;font-size:0.82rem" onclick="document.getElementById('cat-modal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-primary" style="padding:9px 22px;font-size:0.82rem" onclick="saveCategoryModal()">Create ✓</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Admin Password Modal -->
   <div id="admin-modal">
@@ -2070,7 +2484,7 @@
 
   <!-- ══ NAV ══ -->
   <nav>
-    <div class="nav-logo">ARGHYA</div>
+    <div class="nav-logo" data-editable contenteditable="false" data-key="nav-logo">ARGHYA</div>
     <ul class="nav-links">
       <li><a href="#hero">Home</a></li>
       <li><a href="#about">About</a></li>
@@ -2108,11 +2522,11 @@
       <div class="hero-content">
         <div class="hero-badge">
           <div class="avail-ring"><div class="dot-inner"></div></div>
-          Available for Internship &amp; Projects
+          <span class="hero-badge-text" data-editable contenteditable="false" data-key="hero-badge-text">Available for Internship &amp; Projects</span>
         </div>
         <h1 class="hero-name">
-          <span class="line-1">Arghya</span><br>
-          <span class="line-2">Das</span>
+          <span class="line-1" data-editable contenteditable="false" data-key="hero-name-1">Arghya</span><br>
+          <span class="line-2" data-editable contenteditable="false" data-key="hero-name-2">Das</span>
         </h1>
         <p class="hero-tagline">
           <span id="typing-text"></span><span class="typing-cursor"></span>
@@ -2126,9 +2540,9 @@
           <a href="#projects" class="btn btn-ghost">See Projects</a>
         </div>
         <div class="hero-stats">
-          <div class="stat"><div class="stat-num">5+</div><div class="stat-label">Projects Built</div></div>
-          <div class="stat"><div class="stat-num">3+</div><div class="stat-label">Years Learning</div></div>
-          <div class="stat"><div class="stat-num">∞</div><div class="stat-label">Curiosity</div></div>
+          <div class="stat"><div class="stat-num" data-editable contenteditable="false" data-key="hero-stat-n1">5+</div><div class="stat-label" data-editable contenteditable="false" data-key="hero-stat-l1">Projects Built</div></div>
+          <div class="stat"><div class="stat-num" data-editable contenteditable="false" data-key="hero-stat-n2">3+</div><div class="stat-label" data-editable contenteditable="false" data-key="hero-stat-l2">Years Learning</div></div>
+          <div class="stat"><div class="stat-num" data-editable contenteditable="false" data-key="hero-stat-n3">∞</div><div class="stat-label" data-editable contenteditable="false" data-key="hero-stat-l3">Curiosity</div></div>
         </div>
       </div>
 
@@ -2156,7 +2570,8 @@
 
   <!-- MARQUEE STRIP -->
   <div class="marquee-strip">
-    <div class="marquee-inner">
+    <button id="marquee-edit-btn" onclick="openMarqueeModal()">✏️ Edit</button>
+    <div class="marquee-inner" id="marquee-inner">
       <!-- duplicated for seamless loop -->
       <span class="marquee-item">Open to Work <span class="dot"></span></span>
       <span class="marquee-item">Python Developer <span class="dot"></span></span>
@@ -2371,21 +2786,25 @@
             <span class="toolkit-card-title">Programming Languages</span>
           </div>
           <div class="skill-pills" style="flex-direction:column;gap:8px;">
-            <div class="skill-pill-bar">
+            <div class="skill-pill-bar" onclick="editSkillBar(this)">
               <div class="skill-pill-bar-label"><span>🐍</span> Python</div>
               <div class="skill-pill-bar-track"><div class="skill-pill-bar-fill" style="width:85%"></div></div>
+              <span class="skill-bar-edit-tip">Click to set %</span>
             </div>
-            <div class="skill-pill-bar">
+            <div class="skill-pill-bar" onclick="editSkillBar(this)">
               <div class="skill-pill-bar-label"><span>🌐</span> HTML &amp; CSS</div>
               <div class="skill-pill-bar-track"><div class="skill-pill-bar-fill" style="width:78%"></div></div>
+              <span class="skill-bar-edit-tip">Click to set %</span>
             </div>
-            <div class="skill-pill-bar">
+            <div class="skill-pill-bar" onclick="editSkillBar(this)">
               <div class="skill-pill-bar-label"><span>⚡</span> JavaScript</div>
               <div class="skill-pill-bar-track"><div class="skill-pill-bar-fill" style="width:65%"></div></div>
+              <span class="skill-bar-edit-tip">Click to set %</span>
             </div>
-            <div class="skill-pill-bar">
+            <div class="skill-pill-bar" onclick="editSkillBar(this)">
               <div class="skill-pill-bar-label"><span>💙</span> C#</div>
               <div class="skill-pill-bar-track"><div class="skill-pill-bar-fill" style="width:55%"></div></div>
+              <span class="skill-bar-edit-tip">Click to set %</span>
             </div>
           </div>
         </div>
@@ -2447,6 +2866,13 @@
           <span>+ Add Skill</span>
         </div>
 
+        <!-- Admin: Add New Category -->
+        <div class="admin-add-category-card" onclick="openCategoryModal()">
+          <div class="icon">🗂️</div>
+          <p>Create a new skill category</p>
+          <span>+ Add Category</span>
+        </div>
+
       </div>
 
       <div class="carousel-fade carousel-fade--right" id="skills-fade-right"></div>
@@ -2478,23 +2904,31 @@
 
         <div class="cert-card reveal" style="position:relative">
           <button class="admin-delete-btn" onclick="this.closest('.cert-card').remove();savePortfolioState();adminToast('Certificate deleted')">🗑</button>
-          <div class="cert-img-wrap">
+          <div class="cert-img-wrap" onclick="openCertLightbox(this)">
             <div class="cert-img-placeholder">
               <span class="emoji">🏆</span>
               <span class="cert-img-placeholder-label">Coursera</span>
             </div>
           </div>
           <div class="cert-info">
-            <div class="cert-tag-row">
-              <span class="cert-badge-pill">Certificate</span>
+            <div class="cert-tag-row" style="position:relative">
+              <span class="cert-badge-pill" onclick="toggleBadgeDropdown(this)">Certificate
+                <div class="cert-badge-dropdown">
+                  <button class="cert-badge-opt" onclick="setBadgeType(this,'Certificate')">🎓 Certificate</button>
+                  <button class="cert-badge-opt" onclick="setBadgeType(this,'Badge')">🏅 Badge</button>
+                  <button class="cert-badge-opt" onclick="setBadgeType(this,'Award')">🏆 Award</button>
+                  <button class="cert-badge-opt" onclick="setBadgeType(this,'Participation')">📋 Participation</button>
+                  <button class="cert-badge-opt" onclick="setBadgeType(this,'Completion')">✅ Completion</button>
+                </div>
+              </span>
             </div>
-            <h3 class="cert-title">Python for Everybody</h3>
+            <h3 class="cert-title" data-editable contenteditable="false" data-key="cert-t-1">Python for Everybody</h3>
             <div class="cert-date-row">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              2024
+              <span data-editable contenteditable="false" data-key="cert-d-1">2024</span>
             </div>
-            <div class="cert-issuer">Issued by Coursera</div>
-            <a href="#" class="cert-view-btn">
+            <div class="cert-issuer" data-editable contenteditable="false" data-key="cert-i-1">Issued by Coursera</div>
+            <a href="#" class="cert-view-btn" onclick="openCertLightbox(this.closest('.cert-card').querySelector('.cert-img-wrap'));return false;">
               View Certificate
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </a>
@@ -2503,23 +2937,31 @@
 
         <div class="cert-card reveal delay-1" style="position:relative">
           <button class="admin-delete-btn" onclick="this.closest('.cert-card').remove();savePortfolioState();adminToast('Certificate deleted')">🗑</button>
-          <div class="cert-img-wrap">
+          <div class="cert-img-wrap" onclick="openCertLightbox(this)">
             <div class="cert-img-placeholder">
               <span class="emoji">🎖️</span>
               <span class="cert-img-placeholder-label">freeCodeCamp</span>
             </div>
           </div>
           <div class="cert-info">
-            <div class="cert-tag-row">
-              <span class="cert-badge-pill">Certificate</span>
+            <div class="cert-tag-row" style="position:relative">
+              <span class="cert-badge-pill" onclick="toggleBadgeDropdown(this)">Certificate
+                <div class="cert-badge-dropdown">
+                  <button class="cert-badge-opt" onclick="setBadgeType(this,'Certificate')">🎓 Certificate</button>
+                  <button class="cert-badge-opt" onclick="setBadgeType(this,'Badge')">🏅 Badge</button>
+                  <button class="cert-badge-opt" onclick="setBadgeType(this,'Award')">🏆 Award</button>
+                  <button class="cert-badge-opt" onclick="setBadgeType(this,'Participation')">📋 Participation</button>
+                  <button class="cert-badge-opt" onclick="setBadgeType(this,'Completion')">✅ Completion</button>
+                </div>
+              </span>
             </div>
-            <h3 class="cert-title">HTML &amp; CSS Fundamentals</h3>
+            <h3 class="cert-title" data-editable contenteditable="false" data-key="cert-t-2">HTML &amp; CSS Fundamentals</h3>
             <div class="cert-date-row">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              2024
+              <span data-editable contenteditable="false" data-key="cert-d-2">2024</span>
             </div>
-            <div class="cert-issuer">Issued by freeCodeCamp</div>
-            <a href="#" class="cert-view-btn">
+            <div class="cert-issuer" data-editable contenteditable="false" data-key="cert-i-2">Issued by freeCodeCamp</div>
+            <a href="#" class="cert-view-btn" onclick="openCertLightbox(this.closest('.cert-card').querySelector('.cert-img-wrap'));return false;">
               View Certificate
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </a>
@@ -2528,23 +2970,31 @@
 
         <div class="cert-card reveal delay-2" style="position:relative">
           <button class="admin-delete-btn" onclick="this.closest('.cert-card').remove();savePortfolioState();adminToast('Certificate deleted')">🗑</button>
-          <div class="cert-img-wrap">
+          <div class="cert-img-wrap" onclick="openCertLightbox(this)">
             <div class="cert-img-placeholder">
               <span class="emoji">🤖</span>
               <span class="cert-img-placeholder-label">Google Cloud</span>
             </div>
           </div>
           <div class="cert-info">
-            <div class="cert-tag-row">
-              <span class="cert-badge-pill">Certificate</span>
+            <div class="cert-tag-row" style="position:relative">
+              <span class="cert-badge-pill" onclick="toggleBadgeDropdown(this)">Certificate
+                <div class="cert-badge-dropdown">
+                  <button class="cert-badge-opt" onclick="setBadgeType(this,'Certificate')">🎓 Certificate</button>
+                  <button class="cert-badge-opt" onclick="setBadgeType(this,'Badge')">🏅 Badge</button>
+                  <button class="cert-badge-opt" onclick="setBadgeType(this,'Award')">🏆 Award</button>
+                  <button class="cert-badge-opt" onclick="setBadgeType(this,'Participation')">📋 Participation</button>
+                  <button class="cert-badge-opt" onclick="setBadgeType(this,'Completion')">✅ Completion</button>
+                </div>
+              </span>
             </div>
-            <h3 class="cert-title">Introduction to Generative AI</h3>
+            <h3 class="cert-title" data-editable contenteditable="false" data-key="cert-t-3">Introduction to Generative AI</h3>
             <div class="cert-date-row">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              2024
+              <span data-editable contenteditable="false" data-key="cert-d-3">2024</span>
             </div>
-            <div class="cert-issuer">Issued by Google Cloud Skills</div>
-            <a href="#" class="cert-view-btn">
+            <div class="cert-issuer" data-editable contenteditable="false" data-key="cert-i-3">Issued by Google Cloud Skills</div>
+            <a href="#" class="cert-view-btn" onclick="openCertLightbox(this.closest('.cert-card').querySelector('.cert-img-wrap'));return false;">
               View Certificate
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </a>
@@ -2553,23 +3003,31 @@
 
         <div class="cert-card reveal delay-3" style="position:relative">
           <button class="admin-delete-btn" onclick="this.closest('.cert-card').remove();savePortfolioState();adminToast('Certificate deleted')">🗑</button>
-          <div class="cert-img-wrap">
+          <div class="cert-img-wrap" onclick="openCertLightbox(this)">
             <div class="cert-img-placeholder">
               <span class="emoji">🔀</span>
               <span class="cert-img-placeholder-label">GitHub</span>
             </div>
           </div>
           <div class="cert-info">
-            <div class="cert-tag-row">
-              <span class="cert-badge-pill">Certificate</span>
+            <div class="cert-tag-row" style="position:relative">
+              <span class="cert-badge-pill" onclick="toggleBadgeDropdown(this)">Certificate
+                <div class="cert-badge-dropdown">
+                  <button class="cert-badge-opt" onclick="setBadgeType(this,'Certificate')">🎓 Certificate</button>
+                  <button class="cert-badge-opt" onclick="setBadgeType(this,'Badge')">🏅 Badge</button>
+                  <button class="cert-badge-opt" onclick="setBadgeType(this,'Award')">🏆 Award</button>
+                  <button class="cert-badge-opt" onclick="setBadgeType(this,'Participation')">📋 Participation</button>
+                  <button class="cert-badge-opt" onclick="setBadgeType(this,'Completion')">✅ Completion</button>
+                </div>
+              </span>
             </div>
-            <h3 class="cert-title">Git &amp; GitHub Foundations</h3>
+            <h3 class="cert-title" data-editable contenteditable="false" data-key="cert-t-4">Git &amp; GitHub Foundations</h3>
             <div class="cert-date-row">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              2025
+              <span data-editable contenteditable="false" data-key="cert-d-4">2025</span>
             </div>
-            <div class="cert-issuer">Issued by GitHub Education</div>
-            <a href="#" class="cert-view-btn">
+            <div class="cert-issuer" data-editable contenteditable="false" data-key="cert-i-4">Issued by GitHub Education</div>
+            <a href="#" class="cert-view-btn" onclick="openCertLightbox(this.closest('.cert-card').querySelector('.cert-img-wrap'));return false;">
               View Certificate
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </a>
@@ -2607,14 +3065,14 @@
           <div class="contact-item-icon">📫</div>
           <div class="contact-item-text">
             <div class="contact-item-label">Email</div>
-            <div class="contact-item-value">arghyaofficial111@gmail.com</div>
+            <div class="contact-item-value" data-editable contenteditable="false" data-key="contact-email">arghyaofficial111@gmail.com</div>
           </div>
         </div>
         <div class="contact-item">
           <div class="contact-item-icon">📊</div>
           <div class="contact-item-text">
             <div class="contact-item-label">Status</div>
-            <div class="contact-item-value">Open to opportunities ✓</div>
+            <div class="contact-item-value" data-editable contenteditable="false" data-key="contact-status">Open to opportunities ✓</div>
           </div>
         </div>
         <a href="https://www.linkedin.com/in/arghyadas108/" target="_blank" rel="noopener noreferrer" style="text-decoration:none; display:block;">
@@ -2673,8 +3131,8 @@
   <footer>
     <div class="footer-inner">
       <div>
-        <div class="footer-logo">Arghya Das</div>
-        <div class="footer-tagline">"Building things that actually work."</div>
+        <div class="footer-logo" data-editable contenteditable="false" data-key="footer-name">Arghya Das</div>
+        <div class="footer-tagline" data-editable contenteditable="false" data-key="footer-tagline">"Building things that actually work."</div>
       </div>
       <div class="footer-links">
         <a href="#hero">Home</a>
@@ -2685,7 +3143,7 @@
     </div>
     <div class="footer-divider"></div>
     <div class="footer-bottom">
-      <span class="footer-copy">© 2025 Arghya Das. All rights reserved.</span>
+      <span class="footer-copy" data-editable contenteditable="false" data-key="footer-copy">© 2025 Arghya Das. All rights reserved.</span>
       <div style="display:flex;gap:10px;">
         <a href="https://github.com/Arghya108" target="_blank" class="social-icon-btn" title="GitHub">🐙</a>
         <a href="https://www.linkedin.com/in/arghyadas108/" target="_blank" class="social-icon-btn" title="LinkedIn">💼</a>
@@ -3669,6 +4127,274 @@
         });
       });
     })();
+
+    /* ════════════════════════════════════════════════════
+       CERTIFICATE LIGHTBOX
+    ════════════════════════════════════════════════════ */
+    var _lbZoom = 100;
+
+    window.openCertLightbox = function(wrapEl) {
+      if (!wrapEl) return;
+      var lb    = document.getElementById('cert-lightbox');
+      var lbImg = document.getElementById('cert-lb-img');
+      var lbPh  = document.getElementById('cert-lb-placeholder');
+      var outer = document.getElementById('cert-lb-outer');
+      var certCard = wrapEl.closest ? wrapEl.closest('.cert-card') : null;
+
+      var titleEl = certCard ? certCard.querySelector('.cert-title') : null;
+      document.getElementById('cert-lb-title').textContent = titleEl ? titleEl.textContent : 'Certificate';
+
+      var imgEl = wrapEl.querySelector ? wrapEl.querySelector('img') : null;
+
+      _lbZoom = 100;
+      lbImg.style.transform = 'scale(1)';
+      document.getElementById('cert-lb-zoom-label').textContent = '100%';
+      outer.classList.remove('zoomed');
+
+      if (imgEl && imgEl.src && imgEl.src.indexOf('data:image/svg') === -1) {
+        lbImg.src = imgEl.src;
+        lbImg.style.display = 'block';
+        lbPh.style.display  = 'none';
+      } else {
+        lbImg.style.display = 'none';
+        lbPh.style.display  = 'flex';
+        var ph = wrapEl.querySelector ? wrapEl.querySelector('.cert-img-placeholder') : null;
+        var emojiEl = ph ? ph.querySelector('.emoji') : null;
+        var labelEl = ph ? ph.querySelector('.cert-img-placeholder-label') : null;
+        document.getElementById('cert-lb-emoji').textContent = emojiEl ? emojiEl.textContent : '🏅';
+        document.getElementById('cert-lb-big-title').textContent = titleEl ? titleEl.textContent : '';
+        var issuerEl = certCard ? certCard.querySelector('.cert-issuer') : null;
+        document.getElementById('cert-lb-big-issuer').textContent = issuerEl ? issuerEl.textContent : '';
+      }
+
+      lb.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    };
+
+    window.closeCertLightbox = function() {
+      document.getElementById('cert-lightbox').classList.remove('open');
+      document.body.style.overflow = '';
+      _lbZoom = 100;
+    };
+
+    window.certZoom = function(delta) {
+      _lbZoom = Math.min(300, Math.max(40, _lbZoom + delta));
+      document.getElementById('cert-lb-img').style.transform = 'scale(' + (_lbZoom / 100) + ')';
+      document.getElementById('cert-lb-zoom-label').textContent = _lbZoom + '%';
+      document.getElementById('cert-lb-outer').classList.toggle('zoomed', _lbZoom > 100);
+    };
+
+    window.certZoomReset = function() {
+      _lbZoom = 100;
+      document.getElementById('cert-lb-img').style.transform = 'scale(1)';
+      document.getElementById('cert-lb-zoom-label').textContent = '100%';
+      document.getElementById('cert-lb-outer').classList.remove('zoomed');
+    };
+
+    window.certLightboxToggleZoom = function(e) {
+      if (e && e.target && e.target.id !== 'cert-lb-outer') return;
+      window.certZoom(_lbZoom < 150 ? 50 : -(_lbZoom - 100));
+    };
+
+    document.getElementById('cert-lightbox').addEventListener('click', function(e) {
+      if (e.target === this) window.closeCertLightbox();
+    });
+    document.addEventListener('keydown', function(e) {
+      var lb = document.getElementById('cert-lightbox');
+      if (!lb.classList.contains('open')) return;
+      if (e.key === 'Escape') window.closeCertLightbox();
+      if (e.key === '=' || e.key === '+') window.certZoom(25);
+      if (e.key === '-') window.certZoom(-25);
+      if (e.key === '0') window.certZoomReset();
+    });
+
+    /* ════════════════════════════════════════════════════
+       CERT BADGE TYPE
+    ════════════════════════════════════════════════════ */
+    window.toggleBadgeDropdown = function(pill) {
+      if (!adminMode) return;
+      var dd = pill.querySelector('.cert-badge-dropdown');
+      if (!dd) return;
+      document.querySelectorAll('.cert-badge-dropdown.open').forEach(function(d) { if (d !== dd) d.classList.remove('open'); });
+      dd.classList.toggle('open');
+    };
+
+    window.setBadgeType = function(optBtn, type) {
+      var dd   = optBtn.closest('.cert-badge-dropdown');
+      var pill = dd ? dd.parentElement : null;
+      if (!pill) return;
+      /* Replace text node preserving dropdown child */
+      var firstText = pill.childNodes[0];
+      if (firstText && firstText.nodeType === 3) firstText.textContent = type + ' ';
+      else pill.insertBefore(document.createTextNode(type + ' '), pill.firstChild);
+      dd.classList.remove('open');
+      adminToast('Type → ' + type + ' ✓');
+      savePortfolioState();
+    };
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.cert-badge-pill')) {
+        document.querySelectorAll('.cert-badge-dropdown.open').forEach(function(d) { d.classList.remove('open'); });
+      }
+    });
+
+    /* ════════════════════════════════════════════════════
+       SKILL BAR LEVEL EDITOR
+    ════════════════════════════════════════════════════ */
+    window.editSkillBar = function(barEl) {
+      if (!adminMode) return;
+      var fill  = barEl.querySelector('.skill-pill-bar-fill');
+      if (!fill) return;
+      var label = barEl.querySelector('.skill-pill-bar-label');
+      var name  = label ? label.textContent.trim() : 'skill';
+      var curW  = parseFloat(fill.style.width) || 70;
+      var val   = window.prompt('Proficiency % for "' + name + '" (0–100):', Math.round(curW));
+      if (val === null) return;
+      var pct = Math.min(100, Math.max(0, parseInt(val) || 0));
+      fill.style.width = pct + '%';
+      fill.style.transform = 'scaleX(1)';
+      adminToast(name + ' → ' + pct + '% ✓');
+      savePortfolioState();
+    };
+
+    /* ════════════════════════════════════════════════════
+       TYPING PHRASES EDITOR
+    ════════════════════════════════════════════════════ */
+    window.openPhrasesModal = function() {
+      var list = document.getElementById('phrases-list');
+      list.innerHTML = '';
+      phrases.forEach(function(p) { list.appendChild(makePhraseRow(p)); });
+      document.getElementById('phrases-modal').classList.add('open');
+    };
+    function makePhraseRow(val) {
+      var row = document.createElement('div');
+      row.className = 'phrase-item';
+      row.innerHTML = '<input type="text" value="' + (val || '').replace(/"/g,'&quot;') + '" placeholder="e.g. Python Developer."/><button class="phrase-rm" onclick="this.parentElement.remove()">✕</button>';
+      return row;
+    }
+    window.addPhraseRow = function() {
+      document.getElementById('phrases-list').appendChild(makePhraseRow(''));
+    };
+    window.savePhrasesModal = function() {
+      var newPhrases = [];
+      document.querySelectorAll('#phrases-list input').forEach(function(inp) { var v = inp.value.trim(); if (v) newPhrases.push(v); });
+      if (!newPhrases.length) { alert('Add at least one phrase.'); return; }
+      phrases = newPhrases;
+      phraseIdx = 0; charIdx = 0; deleting = false;
+      typingEl.textContent = '';
+      document.getElementById('phrases-modal').classList.remove('open');
+      adminToast('Typing phrases updated ✓');
+      savePortfolioState();
+    };
+
+    /* ════════════════════════════════════════════════════
+       MARQUEE EDITOR
+    ════════════════════════════════════════════════════ */
+    window.openMarqueeModal = function() {
+      var list = document.getElementById('marquee-items-list');
+      list.innerHTML = '';
+      var seen = {};
+      document.querySelectorAll('#marquee-inner .marquee-item').forEach(function(it) {
+        var t = it.childNodes[0] ? it.childNodes[0].textContent.trim() : '';
+        if (t && !seen[t]) { seen[t] = true; list.appendChild(makeMarqueeRow(t)); }
+      });
+      if (!list.children.length) list.appendChild(makeMarqueeRow(''));
+      document.getElementById('marquee-modal').classList.add('open');
+    };
+    function makeMarqueeRow(val) {
+      var row = document.createElement('div');
+      row.className = 'marquee-item-row';
+      row.innerHTML = '<input type="text" value="' + (val || '').replace(/"/g,'&quot;') + '" placeholder="e.g. Python Developer"/><button class="mitem-rm" onclick="this.parentElement.remove()">✕</button>';
+      return row;
+    }
+    window.addMarqueeRow = function() {
+      document.getElementById('marquee-items-list').appendChild(makeMarqueeRow(''));
+    };
+    window.saveMarqueeModal = function() {
+      var items = [];
+      document.querySelectorAll('#marquee-items-list input').forEach(function(inp) { var v = inp.value.trim(); if (v) items.push(v); });
+      if (!items.length) { alert('Add at least one item.'); return; }
+      var inner = document.getElementById('marquee-inner');
+      inner.innerHTML = '';
+      items.concat(items).forEach(function(text) {
+        var span = document.createElement('span');
+        span.className = 'marquee-item';
+        span.innerHTML = text + ' <span class="dot"></span>';
+        inner.appendChild(span);
+      });
+      document.getElementById('marquee-modal').classList.remove('open');
+      adminToast('Marquee updated ✓');
+      savePortfolioState();
+    };
+
+    /* ════════════════════════════════════════════════════
+       ADD SKILL CATEGORY
+    ════════════════════════════════════════════════════ */
+    window.openCategoryModal = function() {
+      if (!adminMode) return;
+      document.getElementById('cat-icon').value = '';
+      document.getElementById('cat-name').value = '';
+      var list = document.getElementById('cat-skill-list');
+      list.innerHTML = '';
+      window.addCatSkillRow();
+      document.getElementById('cat-modal').classList.add('open');
+    };
+    window.addCatSkillRow = function() {
+      var row = document.createElement('div');
+      row.className = 'cat-skill-item';
+      row.innerHTML =
+        '<input placeholder="Skill name" style="flex:1;background:var(--bg);border:1px solid var(--border-2);border-radius:8px;padding:9px 12px;color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:0.85rem;outline:none"/>' +
+        '<input placeholder="Icon" maxlength="4" style="width:58px;background:var(--bg);border:1px solid var(--border-2);border-radius:8px;padding:9px 8px;color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:0.85rem;outline:none"/>' +
+        '<input placeholder="%" type="number" min="0" max="100" value="70" style="width:58px;background:var(--bg);border:1px solid var(--border-2);border-radius:8px;padding:9px 8px;color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:0.85rem;outline:none"/>' +
+        '<button class="cat-skill-rm" onclick="this.parentElement.remove()">✕</button>';
+      document.getElementById('cat-skill-list').appendChild(row);
+    };
+    window.saveCategoryModal = function() {
+      var icon = document.getElementById('cat-icon').value.trim() || '📦';
+      var name = document.getElementById('cat-name').value.trim();
+      if (!name) { alert('Category name is required.'); return; }
+      var rows = document.querySelectorAll('#cat-skill-list .cat-skill-item');
+      var pillsHTML = '';
+      rows.forEach(function(row) {
+        var inputs = row.querySelectorAll('input');
+        var sName = inputs[0] ? inputs[0].value.trim() : '';
+        var sIcon = inputs[1] ? inputs[1].value.trim() || '✦' : '✦';
+        var sPct  = inputs[2] ? parseInt(inputs[2].value) || 70 : 70;
+        if (!sName) return;
+        pillsHTML +=
+          '<div class="skill-pill-bar" onclick="editSkillBar(this)">' +
+          '<div class="skill-pill-bar-label"><span>' + sIcon + '</span> ' + sName + '</div>' +
+          '<div class="skill-pill-bar-track"><div class="skill-pill-bar-fill" style="width:' + sPct + '%"></div></div>' +
+          '<span class="skill-bar-edit-tip">Click to set %</span>' +
+          '</div>';
+      });
+      var track   = document.getElementById('skills-track');
+      var firstAdd = track.querySelector('.admin-add-card');
+      var card = document.createElement('div');
+      card.className = 'toolkit-card';
+      card.innerHTML =
+        '<div class="toolkit-card-header"><span class="toolkit-card-icon">' + icon + '</span>' +
+        '<span class="toolkit-card-title">' + name + '</span></div>' +
+        '<div class="skill-pills" style="flex-direction:column;gap:8px;">' + pillsHTML + '</div>';
+      if (firstAdd) track.insertBefore(card, firstAdd);
+      else track.appendChild(card);
+      if (window._revealObserver) window._revealObserver.observe(card);
+      setTimeout(function() {
+        card.querySelectorAll('.skill-pill-bar-fill').forEach(function(f) { f.style.transform = 'scaleX(1)'; });
+      }, 80);
+      /* Add to sf-cat dropdown */
+      var sel = document.getElementById('sf-cat');
+      if (sel) {
+        var opt = document.createElement('option');
+        opt.value = 'custom_' + Date.now(); opt.textContent = name; sel.appendChild(opt);
+      }
+      document.getElementById('cat-modal').classList.remove('open');
+      if (window._initCarousel && window._carouselCfgs) {
+        window._carouselCfgs.forEach(function(cfg) { if (cfg.trackId === 'skills-track') window._initCarousel(cfg); });
+      }
+      adminToast('"' + name + '" category added ✓');
+      savePortfolioState();
+    };
 
   })();
   </script>
