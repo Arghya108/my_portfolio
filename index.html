@@ -3197,8 +3197,8 @@
 
     /* ── Firestore helpers ── */
     const DOC_TEXT  = () => db.collection('portfolio').doc('text_v1');
-    const DOC_META  = () => db.collection('portfolio').doc('meta_v1');  // card arrays (NO photo here)
-    const DOC_PHOTO = () => db.collection('portfolio').doc('photo_v1'); // hero photo stored separately
+    const DOC_META  = () => db.collection('portfolio').doc('meta_v1');  // card arrays only
+    const DOC_PHOTO = () => db.collection('portfolio').doc('photo_v1'); // hero photo separate
 
     /* Expose for the admin system below */
     window._firebaseReady = true;
@@ -3307,7 +3307,7 @@
         var base64 = ev.target.result;
         var img = document.getElementById('hero-photo');
         img.src = base64;
-        /* Save base64 to its OWN Firestore doc (photo_v1) — keeps meta_v1 small */
+        /* Save base64 directly to Firestore (no Storage needed — Spark plan compatible) */
         adminToast('💾 Saving photo…');
         window._DOC_PHOTO().set({ heroPhotoUrl: base64 })
           .then(function() { adminToast('Photo saved ✓'); })
@@ -3349,21 +3349,26 @@
         });
       });
 
-      /* 3. Certificates */
+      /* 3. Certificates — text only in meta_v1; images each get their own doc */
       var certs = [];
-      document.querySelectorAll('#certs-track .cert-card').forEach(function(card) {
+      var certImgPromises = [];
+      document.querySelectorAll('#certs-track .cert-card').forEach(function(card, idx) {
         var titleEl  = card.querySelector('.cert-title');
         var dateEl   = card.querySelector('.cert-date-row');
         var issuerEl = card.querySelector('.cert-issuer');
         var linkEl   = card.querySelector('a.cert-view-btn');
         var imgEl    = card.querySelector('img');
         certs.push({
-          title:  titleEl  ? titleEl.textContent  : '',
-          date:   dateEl   ? dateEl.textContent.trim() : '',
-          issuer: issuerEl ? issuerEl.textContent.replace('Issued by ', '') : '',
-          link:   linkEl   ? linkEl.href           : '#',
-          imgUrl: imgEl    ? (imgEl.dataset.fbUrl || imgEl.src) : ''
+          title:  titleEl  ? titleEl.textContent.trim()  : '',
+          date:   dateEl   ? dateEl.textContent.trim()   : '',
+          issuer: issuerEl ? issuerEl.textContent.replace('Issued by ', '').trim() : '',
+          link:   linkEl   ? linkEl.href                 : '#'
         });
+        if (imgEl && imgEl.src && imgEl.src.startsWith('data:')) {
+          certImgPromises.push(
+            window._db.collection('portfolio').doc('cert_img_' + idx).set({ imgUrl: imgEl.src })
+          );
+        }
       });
 
       /* 4. Skills — save each category card's pill HTML */
@@ -3383,6 +3388,7 @@
         chips.push(chip.innerHTML);
       });
 
+      /* Write everything */
       var p1 = window._DOC_TEXT().set(textData, { merge: true });
       var p2 = window._DOC_META().set({
         projects:   projects,
@@ -3391,7 +3397,7 @@
         chips:      chips
       }, { merge: true });
 
-      Promise.all([p1, p2])
+      Promise.all([p1, p2].concat(certImgPromises))
         .then(function() { adminToast('Changes saved to Firebase ✓'); })
         .catch(function(err) {
           console.error('Firestore save error:', err);
@@ -3439,17 +3445,15 @@
         hideBanner();
       });
 
-      /* Load hero photo from its own doc (photo_v1) */
+      /* Load hero photo from its own doc (keeps meta_v1 under 1MB) */
       window._DOC_PHOTO().get().then(function(snap) {
         if (snap.exists && snap.data().heroPhotoUrl) {
           var img = document.getElementById('hero-photo');
           if (img) img.src = snap.data().heroPhotoUrl;
         }
-      }).catch(function(err) {
-        console.warn('Firestore photo load error:', err);
-      });
+      }).catch(function(err) { console.warn('Photo load error:', err); });
 
-      /* Load meta: hero photo, projects, certs, skills, chips */
+      /* Load meta: projects, certs, skills, chips */
       window._DOC_META().get().then(function(snap) {
         if (!snap.exists) { hideBanner(); return; }
         var meta = snap.data();
@@ -3492,18 +3496,16 @@
           var svgArr = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
           var certsTrack   = document.getElementById('certs-track');
           var certsAddCard = certsTrack ? certsTrack.querySelector('.admin-add-card') : null;
-          /* Remove ALL hardcoded cert cards first to prevent duplicates */
-          if (certsTrack) { certsTrack.querySelectorAll(".cert-card").forEach(function(c) { c.remove(); }); }
-          meta.certs.forEach(function(c) {
-            var imgHTML = c.imgUrl
-              ? '<img src="' + c.imgUrl + '" style="width:100%;height:100%;object-fit:cover;display:block;" data-fb-url="' + c.imgUrl + '"/>'
-              : '<div class="cert-img-placeholder"><span class="emoji">🏅</span><span class="cert-img-placeholder-label">' + (c.issuer || 'Certificate') + '</span></div>';
+          if (certsTrack) { certsTrack.querySelectorAll('.cert-card').forEach(function(c) { c.remove(); }); }
+          meta.certs.forEach(function(c, idx) {
+            /* Build card with placeholder first; image loads async from cert_img_N */
+            var placeholderHTML = '<div class="cert-img-placeholder"><span class="emoji">&#127885;</span><span class="cert-img-placeholder-label">' + (c.issuer || 'Certificate') + '</span></div>';
             var card = document.createElement('div');
             card.className = 'cert-card';
             card.style.position = 'relative';
             card.innerHTML =
-              '<button class="admin-delete-btn" onclick="this.closest(\'.cert-card\').remove();savePortfolioState();adminToast(\'Certificate deleted\')">🗑</button>' +
-              '<div class="cert-img-wrap">' + imgHTML + '</div>' +
+              '<button class="admin-delete-btn" onclick="this.closest(\'.cert-card\').remove();savePortfolioState();adminToast(\'Certificate deleted\')">&#128465;</button>' +
+              '<div class="cert-img-wrap">' + placeholderHTML + '</div>' +
               '<div class="cert-info">' +
                 '<div class="cert-tag-row"><span class="cert-badge-pill">Certificate</span></div>' +
                 '<h3 class="cert-title">' + c.title + '</h3>' +
@@ -3514,14 +3516,25 @@
             if (certsAddCard) certsTrack.insertBefore(card, certsAddCard);
             else if (certsTrack) certsTrack.appendChild(card);
             if (window._revealObserver) window._revealObserver.observe(card);
-            /* Fix Bug 3 — attach lightbox to dynamically built cert cards */
-            var wrap = card.querySelector('.cert-img-wrap');
-            if (wrap) {
-              wrap.addEventListener('click', function() {
-                var img = wrap.querySelector('img');
+            /* Attach lightbox to this card */
+            (function(w) {
+              if (!w) return;
+              w.addEventListener('click', function() {
+                var img = w.querySelector('img');
                 if (img && window.openLightbox) window.openLightbox(img.src);
               });
-            }
+            })(card.querySelector('.cert-img-wrap'));
+            /* Load cert image from its own Firestore doc asynchronously */
+            (function(cardEl, certIdx) {
+              window._db.collection('portfolio').doc('cert_img_' + certIdx).get()
+                .then(function(imgSnap) {
+                  if (imgSnap.exists && imgSnap.data().imgUrl) {
+                    var w = cardEl.querySelector('.cert-img-wrap');
+                    if (w) w.innerHTML = '<img src="' + imgSnap.data().imgUrl + '" style="width:100%;height:100%;object-fit:cover;display:block;"/>';
+                  }
+                })
+                .catch(function() { /* no image stored — placeholder stays */ });
+            })(card, idx);
           });
         }
 
@@ -3732,15 +3745,15 @@
         : placeholderHTML;
       var card = buildCertCard(imgHTML, title, date, issuer, link);
       track.insertBefore(card, addCard);
-      /* Fix Bug 3 — attach lightbox to this new card immediately */
-      var wrap = card.querySelector('.cert-img-wrap');
-      if (wrap) {
-        wrap.addEventListener('click', function() {
-          var img = wrap.querySelector('img');
+      /* Attach lightbox to this new card immediately */
+      (function(w) {
+        if (!w) return;
+        w.addEventListener('click', function() {
+          var img = w.querySelector('img');
           if (img && window.openLightbox) window.openLightbox(img.src);
         });
-      }
-      /* Close modal right away — don't wait for upload */
+      })(card.querySelector('.cert-img-wrap'));
+      /* Close modal right away */
       closeEditModal();
       adminToast('Certificate added ✓');
       savePortfolioState();
