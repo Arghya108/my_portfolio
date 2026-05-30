@@ -3197,14 +3197,16 @@
 
     /* ── Firestore helpers ── */
     const DOC_TEXT  = () => db.collection('portfolio').doc('text_v1');
-    const DOC_META  = () => db.collection('portfolio').doc('meta_v1');  // photo URL + card arrays
+    const DOC_META  = () => db.collection('portfolio').doc('meta_v1');  // card arrays (NO photo here)
+    const DOC_PHOTO = () => db.collection('portfolio').doc('photo_v1'); // hero photo stored separately
 
     /* Expose for the admin system below */
     window._firebaseReady = true;
     window._db      = db;
     window._storage = storage;
-    window._DOC_TEXT = DOC_TEXT;
-    window._DOC_META = DOC_META;
+    window._DOC_TEXT  = DOC_TEXT;
+    window._DOC_META  = DOC_META;
+    window._DOC_PHOTO = DOC_PHOTO;
   </script>
 
   <!-- ══════════════════════════════════════════════════════
@@ -3305,9 +3307,9 @@
         var base64 = ev.target.result;
         var img = document.getElementById('hero-photo');
         img.src = base64;
-        /* Save base64 directly to Firestore (no Storage needed — Spark plan compatible) */
+        /* Save base64 to its OWN Firestore doc (photo_v1) — keeps meta_v1 small */
         adminToast('💾 Saving photo…');
-        window._DOC_META().set({ heroPhotoUrl: base64 }, { merge: true })
+        window._DOC_PHOTO().set({ heroPhotoUrl: base64 })
           .then(function() { adminToast('Photo saved ✓'); })
           .catch(function(err) {
             console.error('Avatar save error:', err);
@@ -3381,7 +3383,6 @@
         chips.push(chip.innerHTML);
       });
 
-      /* Write everything */
       var p1 = window._DOC_TEXT().set(textData, { merge: true });
       var p2 = window._DOC_META().set({
         projects:   projects,
@@ -3438,16 +3439,20 @@
         hideBanner();
       });
 
+      /* Load hero photo from its own doc (photo_v1) */
+      window._DOC_PHOTO().get().then(function(snap) {
+        if (snap.exists && snap.data().heroPhotoUrl) {
+          var img = document.getElementById('hero-photo');
+          if (img) img.src = snap.data().heroPhotoUrl;
+        }
+      }).catch(function(err) {
+        console.warn('Firestore photo load error:', err);
+      });
+
       /* Load meta: hero photo, projects, certs, skills, chips */
       window._DOC_META().get().then(function(snap) {
         if (!snap.exists) { hideBanner(); return; }
         var meta = snap.data();
-
-        /* Hero photo */
-        if (meta.heroPhotoUrl) {
-          var img = document.getElementById('hero-photo');
-          if (img) img.src = meta.heroPhotoUrl;
-        }
 
         /* ── Rebuild Projects ── */
         if (meta.projects && meta.projects.length) {
@@ -3509,6 +3514,14 @@
             if (certsAddCard) certsTrack.insertBefore(card, certsAddCard);
             else if (certsTrack) certsTrack.appendChild(card);
             if (window._revealObserver) window._revealObserver.observe(card);
+            /* Fix Bug 3 — attach lightbox to dynamically built cert cards */
+            var wrap = card.querySelector('.cert-img-wrap');
+            if (wrap) {
+              wrap.addEventListener('click', function() {
+                var img = wrap.querySelector('img');
+                if (img && window.openLightbox) window.openLightbox(img.src);
+              });
+            }
           });
         }
 
@@ -3719,6 +3732,14 @@
         : placeholderHTML;
       var card = buildCertCard(imgHTML, title, date, issuer, link);
       track.insertBefore(card, addCard);
+      /* Fix Bug 3 — attach lightbox to this new card immediately */
+      var wrap = card.querySelector('.cert-img-wrap');
+      if (wrap) {
+        wrap.addEventListener('click', function() {
+          var img = wrap.querySelector('img');
+          if (img && window.openLightbox) window.openLightbox(img.src);
+        });
+      }
       /* Close modal right away — don't wait for upload */
       closeEditModal();
       adminToast('Certificate added ✓');
