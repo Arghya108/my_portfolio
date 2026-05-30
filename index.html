@@ -2586,105 +2586,6 @@
 
       <div id="certs-track">
 
-        <div class="cert-card reveal" style="position:relative">
-          <button class="admin-delete-btn" onclick="this.closest('.cert-card').remove();savePortfolioState();adminToast('Certificate deleted')">🗑</button>
-          <div class="cert-img-wrap">
-            <div class="cert-img-placeholder">
-              <span class="emoji">🏆</span>
-              <span class="cert-img-placeholder-label">Coursera</span>
-            </div>
-          </div>
-          <div class="cert-info">
-            <div class="cert-tag-row">
-              <span class="cert-badge-pill">Certificate</span>
-            </div>
-            <h3 class="cert-title">Python for Everybody</h3>
-            <div class="cert-date-row">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              2024
-            </div>
-            <div class="cert-issuer">Issued by Coursera</div>
-            <a href="#" class="cert-view-btn">
-              View Certificate
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </a>
-          </div>
-        </div>
-
-        <div class="cert-card reveal delay-1" style="position:relative">
-          <button class="admin-delete-btn" onclick="this.closest('.cert-card').remove();savePortfolioState();adminToast('Certificate deleted')">🗑</button>
-          <div class="cert-img-wrap">
-            <div class="cert-img-placeholder">
-              <span class="emoji">🎖️</span>
-              <span class="cert-img-placeholder-label">freeCodeCamp</span>
-            </div>
-          </div>
-          <div class="cert-info">
-            <div class="cert-tag-row">
-              <span class="cert-badge-pill">Certificate</span>
-            </div>
-            <h3 class="cert-title">HTML &amp; CSS Fundamentals</h3>
-            <div class="cert-date-row">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              2024
-            </div>
-            <div class="cert-issuer">Issued by freeCodeCamp</div>
-            <a href="#" class="cert-view-btn">
-              View Certificate
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </a>
-          </div>
-        </div>
-
-        <div class="cert-card reveal delay-2" style="position:relative">
-          <button class="admin-delete-btn" onclick="this.closest('.cert-card').remove();savePortfolioState();adminToast('Certificate deleted')">🗑</button>
-          <div class="cert-img-wrap">
-            <div class="cert-img-placeholder">
-              <span class="emoji">🤖</span>
-              <span class="cert-img-placeholder-label">Google Cloud</span>
-            </div>
-          </div>
-          <div class="cert-info">
-            <div class="cert-tag-row">
-              <span class="cert-badge-pill">Certificate</span>
-            </div>
-            <h3 class="cert-title">Introduction to Generative AI</h3>
-            <div class="cert-date-row">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              2024
-            </div>
-            <div class="cert-issuer">Issued by Google Cloud Skills</div>
-            <a href="#" class="cert-view-btn">
-              View Certificate
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </a>
-          </div>
-        </div>
-
-        <div class="cert-card reveal delay-3" style="position:relative">
-          <button class="admin-delete-btn" onclick="this.closest('.cert-card').remove();savePortfolioState();adminToast('Certificate deleted')">🗑</button>
-          <div class="cert-img-wrap">
-            <div class="cert-img-placeholder">
-              <span class="emoji">🔀</span>
-              <span class="cert-img-placeholder-label">GitHub</span>
-            </div>
-          </div>
-          <div class="cert-info">
-            <div class="cert-tag-row">
-              <span class="cert-badge-pill">Certificate</span>
-            </div>
-            <h3 class="cert-title">Git &amp; GitHub Foundations</h3>
-            <div class="cert-date-row">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              2025
-            </div>
-            <div class="cert-issuer">Issued by GitHub Education</div>
-            <a href="#" class="cert-view-btn">
-              View Certificate
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </a>
-          </div>
-        </div>
 
         <!-- Admin: Add New Certificate -->
         <div class="admin-add-card" onclick="openEditModal('cert')">
@@ -3445,7 +3346,7 @@
         hideBanner();
       });
 
-      /* Load hero photo from its own doc (keeps meta_v1 under 1MB) */
+      /* Load hero photo from its own doc */
       window._DOC_PHOTO().get().then(function(snap) {
         if (snap.exists && snap.data().heroPhotoUrl) {
           var img = document.getElementById('hero-photo');
@@ -3498,13 +3399,12 @@
           var certsAddCard = certsTrack ? certsTrack.querySelector('.admin-add-card') : null;
           if (certsTrack) { certsTrack.querySelectorAll('.cert-card').forEach(function(c) { c.remove(); }); }
           meta.certs.forEach(function(c, idx) {
-            /* Build card with placeholder first; image loads async from cert_img_N */
             var placeholderHTML = '<div class="cert-img-placeholder"><span class="emoji">&#127885;</span><span class="cert-img-placeholder-label">' + (c.issuer || 'Certificate') + '</span></div>';
             var card = document.createElement('div');
             card.className = 'cert-card';
             card.style.position = 'relative';
             card.innerHTML =
-              '<button class="admin-delete-btn" onclick="this.closest(\'.cert-card\').remove();savePortfolioState();adminToast(\'Certificate deleted\')">&#128465;</button>' +
+              '<button class="admin-delete-btn" onclick="this.closest(\'.' + 'cert-card\').remove();savePortfolioState();adminToast(\'Certificate deleted\')">&#128465;</button>' +
               '<div class="cert-img-wrap">' + placeholderHTML + '</div>' +
               '<div class="cert-info">' +
                 '<div class="cert-tag-row"><span class="cert-badge-pill">Certificate</span></div>' +
@@ -3516,7 +3416,6 @@
             if (certsAddCard) certsTrack.insertBefore(card, certsAddCard);
             else if (certsTrack) certsTrack.appendChild(card);
             if (window._revealObserver) window._revealObserver.observe(card);
-            /* Attach lightbox to this card */
             (function(w) {
               if (!w) return;
               w.addEventListener('click', function() {
@@ -3524,7 +3423,6 @@
                 if (img && window.openLightbox) window.openLightbox(img.src);
               });
             })(card.querySelector('.cert-img-wrap'));
-            /* Load cert image from its own Firestore doc asynchronously */
             (function(cardEl, certIdx) {
               window._db.collection('portfolio').doc('cert_img_' + certIdx).get()
                 .then(function(imgSnap) {
@@ -3533,7 +3431,7 @@
                     if (w) w.innerHTML = '<img src="' + imgSnap.data().imgUrl + '" style="width:100%;height:100%;object-fit:cover;display:block;"/>';
                   }
                 })
-                .catch(function() { /* no image stored — placeholder stays */ });
+                .catch(function() {});
             })(card, idx);
           });
         }
@@ -3745,7 +3643,6 @@
         : placeholderHTML;
       var card = buildCertCard(imgHTML, title, date, issuer, link);
       track.insertBefore(card, addCard);
-      /* Attach lightbox to this new card immediately */
       (function(w) {
         if (!w) return;
         w.addEventListener('click', function() {
@@ -3753,7 +3650,6 @@
           if (img && window.openLightbox) window.openLightbox(img.src);
         });
       })(card.querySelector('.cert-img-wrap'));
-      /* Close modal right away */
       closeEditModal();
       adminToast('Certificate added ✓');
       savePortfolioState();
